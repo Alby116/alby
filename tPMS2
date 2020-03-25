@@ -1,0 +1,46 @@
+{
+[06:55, 3/25/2020] Sammy Lci: int sensorVal1=analogRead(A1);
+int sensorVal2=analogRead(A2);
+sensorVal3=analogRead(A3);
+
+float v1 = (sensorVal1*0.5)/1024.0;
+float v2=(sensorVal2*0.5)/1024.0;
+float v3=(sensorVal3*0.5)/1024.0;
+float v4=(sensorVal4*0.5)/1024.0;
+
+Serial.println("volts1:");
+Serial.print(v1);
+
+Serial.println("volts2:");
+Serial.print(v2);
+
+Serial.println("volts3:");
+Serial.print(v3);
+
+Serial.println("volts4:");
+Serial.print(v4);
+
+
+[06:56, 3/25/2020] Sammy Lci: 
+int sensorVal1=analogRead(A1);
+int sensorVal2=analogRead(A2);
+int sensorVal3=analogRead(A3);
+int sensorVal4=analogRead(A4);
+
+float v1 = (sensorVal1*0.5)/1024.0;
+float v2=(sensorVal2*0.5)/1024.0;
+float v3=(sensorVal3*0.5)/1024.0;
+float v4=(sensorVal4*0.5)/1024.0;
+
+Serial.println("volts1:");
+Serial.print(v1);
+
+Serial.println("volts2:");
+Serial.print(v2);
+
+Serial.println("volts3:");
+Serial.print(v3);
+
+Serial.println("volts4:");
+Serial.print(v4);
+}
