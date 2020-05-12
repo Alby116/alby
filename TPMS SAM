@@ -17,14 +17,13 @@ PubSubClient client(espClient);
 const char* ssid = "Place your wifi's name here";
 const char* password = "Place your wifi's password here";
 const char* mqtt_addr = "Place your cloudmqtt url here.. eg. m10.cloudmqtt.com";
-const int mqtt_port = 14880 // Replace with MQTT port provided by cloudmqtt;
+const int mqtt_port = 14880; // Replace with MQTT port provided by cloudmqtt
 const char* mqtt_user = "Cloud mqtt connection user name";
 const char* mqtt_pass = "Cloud mqtt connection password";
-const char*
 
-long lastMsg = 0;
+// other variable initialisations
+int pressureSensor = A0;
 char msg[50];
-int value = 0;
 
 
 void setup() 
@@ -41,23 +40,6 @@ void setup()
 // the loop function runs over and over again forever
 void loop() 
 {
-  StaticJsonBuffer<300> JSONbuffer;
-  JsonObject& JSONencoder = JSONbuffer.createObject();
-
-  // Extract Sensor data here
-
-  // End - Extract sensor data
-
-	
-  // Package for sending
-  JSONencoder["soilTemp"] = soilTemperature;
-
-  /*Package as JSON object*/
-  char JSONmessageBuffer[200];
-  JSONencoder.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-
-
-  
   if(!client.connected())
   {
     reconnect();
@@ -65,18 +47,29 @@ void loop()
   client.loop(); //Runs the callback fxn
 
   // Your code goes here.
-  
+  StaticJsonDocument<300> JSONbuffer;
+  JsonObject JSONencoder = JSONbuffer.as<JsonObject>();
 
-  /*
-   * To send to server, use
-   * client.publish(topic, value);
-  */
+  // Extract Sensor data here
+  int sensorVal = analogRead(pressureSensor);
+  float voltage = (sensorVal*5.0)/1024.0;
+  float pressure_pascal = (3.0*((float)voltage-0.47))*1000000.0;
+  float pressure_bar = pressure_pascal/10e5;
 
+  // Package into JSON object for sending
+  JSONencoder["pressure_pa"] = pressure_pascal;
+  JSONencoder["pressure_bar"] = pressure_bar;
+
+  // Package as JSON object
+  char JSONmessageBuffer[200];
+  serializeJson(JSONencoder, JSONmessageBuffer);
   
+  char* topic = "pressureSensor"; // This will publish readings to topic 'pressureSensor' on MQTT server
+  client.publish(topic, JSONmessageBuffer);
+
   // wait 5 seconds before sending to server
   delay(5000);
 }
-
 
 /** 
  ** Try to reconnect in case of connection failure.
@@ -84,7 +77,8 @@ void loop()
  
 void reconnect() {
   
-  while(!client.connected()){
+  while(!client.connected())
+  {
     
     Serial.print("Attempting to connect to MQTT server...");
     
@@ -92,21 +86,19 @@ void reconnect() {
     String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
     
-     //Attempt to connect
-      if( client.connect( clientId.c_str(), mqtt_user, mqtt_pass) ){
+   //Attempt to connect
+    if( client.connect( clientId.c_str(), mqtt_user, mqtt_pass))
+    {
+      Serial.println("Connected!");
       
-        Serial.println("Connected!");
-        
-      // Subscribe to topic here if necessary
-      
-      }else{
-        Serial.print("Failed, rc=");
-        Serial.print(client.state());
-        Serial.println("Try again in 5 secs");
-        delay(5000);
-        
-        }
-    }
+    // Subscribe to topic here if necessary
+    } else{
+      Serial.print("Failed, rc=");
+      Serial.print(client.state());
+      Serial.println("Try again in 5 secs");
+      delay(5000);
+      }
+  }
 }
 
 /** 
@@ -125,15 +117,9 @@ void setup_wifi(){
 
   //While not connected
   while( WiFi.status() != WL_CONNECTED ){
-    // Turn OFF 'WiFi connected' indicator to show disconnection
-    digitalWrite(wifi_led,LOW);
-    
     delay(500);
     Serial.print(".");
   }
-  
-  // Turn ON 'WiFi connected' indicator to show connection
-  digitalWrite(wifi_led,HIGH);
   
   //Show connected status
   Serial.println("");
