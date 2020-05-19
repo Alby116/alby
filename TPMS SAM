@@ -47,8 +47,7 @@ void loop()
   client.loop(); //Runs the callback fxn
 
   // Your code goes here.
-  StaticJsonDocument<300> JSONbuffer;
-  JsonObject JSONencoder = JSONbuffer.as<JsonObject>();
+  StaticJsonDocument<256> JSONencoder;
 
   // Extract Sensor data here
   int sensorVal = analogRead(pressureSensor);
@@ -61,7 +60,7 @@ void loop()
   JSONencoder["pressure_bar"] = pressure_bar;
 
   // Package as JSON object
-  char JSONmessageBuffer[200];
+  char JSONmessageBuffer[256];
   serializeJson(JSONencoder, JSONmessageBuffer);
   
   char* topic = "pressureSensor"; // This will publish readings to topic 'pressureSensor' on MQTT server
